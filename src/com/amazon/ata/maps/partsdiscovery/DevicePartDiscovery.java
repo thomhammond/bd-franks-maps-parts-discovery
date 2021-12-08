@@ -1,8 +1,6 @@
 package com.amazon.ata.maps.partsdiscovery;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Helps expose key words from new editions of part catalogs.
@@ -16,8 +14,14 @@ public class DevicePartDiscovery {
      * @return A Map of words that appear in the catalog to the number of times they appear.
      */
     public Map<String, Integer> calculateWordCounts(PartCatalog catalog) {
-        // PARTICIPANTS: Implement calculateWordCounts()
-        return Collections.emptyMap();
+        Map<String, Integer> wordCounts = new HashMap<>();
+        List<String> catalogWords = catalog.getCatalogWords();
+
+        for (String word : catalogWords) {
+            wordCounts.put(word, wordCounts.getOrDefault(word, 0) + 1);
+        }
+
+        return wordCounts;
     }
 
     // --- Part B ---
@@ -27,8 +31,7 @@ public class DevicePartDiscovery {
      * @param wordCounts the map to remove the word from
      */
     public void removeWord(String word, Map<String, Integer> wordCounts) {
-        // PARTICIPANTS: Implement removeWord()
-        return;
+        wordCounts.remove(word);
     }
 
     // --- Part C ---
@@ -38,7 +41,16 @@ public class DevicePartDiscovery {
      * @return The word that appears most frequently in the catalog to the number of times they appear.
      */
     public String getMostFrequentWord(Map<String, Integer> wordCounts) {
-        // PARTICIPANTS: Implement getMostFrequentWord()
+        if (wordCounts == null || wordCounts.isEmpty()) {
+            return null;
+        }
+
+        int maxCount = Collections.max(wordCounts.values());
+        for (String key : wordCounts.keySet()) {
+            if (wordCounts.get(key) == maxCount) {
+                return key;
+            }
+        }
         return null;
     }
 
@@ -52,8 +64,11 @@ public class DevicePartDiscovery {
      * @return a map associating each word with its TF-IDF score.
      */
     public Map<String, Double> getTfIdfScores(Map<String, Integer> wordCounts, Map<String, Double> idfScores) {
-        // PARTICIPANTS: Implement getTfIdfScores()
-        return Collections.emptyMap();
+        Map<String, Double> tfIdScores = new HashMap<>();
+        for (String word : wordCounts.keySet()) {
+            tfIdScores.put(word, wordCounts.get(word) * idfScores.get(word));
+        }
+        return tfIdScores;
     }
 
     // --- Extension 1 ---
@@ -64,8 +79,22 @@ public class DevicePartDiscovery {
      * @return a list of the 10 highest scored words for a catalog.
      */
     public List<String> getBestScoredWords(Map<String, Double> tfIdfScores) {
-        // PARTICIPANTS: Implement getBestScoredWords()
-        return Collections.emptyList();
+        // Create a sortable List of Entries in tfIdfScores
+        List<Map.Entry<String, Double>> entries = new ArrayList<>(tfIdfScores.entrySet());
+
+        // Comparator to sort in descending order
+        Comparator<Map.Entry<String, Double>> comparator = (o1, o2) -> o2.getValue().compareTo(o1.getValue());
+        entries.sort(comparator);
+
+        // Select 10 highest scoring entries
+        entries = entries.subList(0, 10);
+
+        // Format for return
+        List<String> bestScoredWords = new ArrayList<>();
+        for (Map.Entry<String, Double> entry : entries) {
+            bestScoredWords.add(entry.getKey());
+        }
+        return bestScoredWords;
     }
 
     // --- Extension 2 ---
@@ -78,8 +107,21 @@ public class DevicePartDiscovery {
      * @return a map associating each word with its IDF score.
      */
     public Map<String, Double> calculateIdfScores(List<Map<String,Integer>> catalogWordCounts) {
-        // PARTICIPANTS: Implement getIdfScores()
-        return Collections.emptyMap();
+        int N = catalogWordCounts.size();
+        Map<String, Integer> DF = new HashMap<>();
+
+        for (Map<String, Integer> catalog : catalogWordCounts) {
+            for (String word : catalog.keySet()) {
+                DF.put(word, DF.getOrDefault(word, 0) + 1);
+            }
+        }
+
+        Map<String, Double> idfScores = new HashMap<>();
+        for (String word : DF.keySet()) {
+            double idf = (double) N / DF.get(word);
+            idfScores.put(word, Math.log10(idf));
+        }
+        return idfScores;
     }
 
 }
